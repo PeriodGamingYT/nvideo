@@ -107,7 +107,24 @@ static void write_to_frame(
 	struct nvideo_single_frame *dest,
 	struct nvideo_single_frase *src
 ) {
-	
+	for(int y = 0; y < src->height; y++) {
+		for(int x = 0; x < src->width; x++) {
+			int src_x = x + src->x;
+			int src_y = y + src->y;
+			if(
+				src_x < 0 ||
+				src_y < 0 ||
+				src_x > dest->width ||
+				src_y > dest->height
+			) {
+				continue;
+			}
+
+			int dest_index = get_frame_index(dest, src_x, src_y);
+			int src_index = get_frame_index(src, x, y);
+			dest->back[dest_index] = src->back[dest_index];
+		}
+	}
 }
 
 void nvideo_merge(
@@ -118,7 +135,7 @@ void nvideo_merge(
 		frame->merged_result = NULL;
 	}
 	
-	write_to_frame(frae->merged_result, frame->self);
+	write_to_frame(frame->merged_result, frame->self);
 	
 }
 
