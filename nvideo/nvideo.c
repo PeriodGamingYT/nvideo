@@ -65,15 +65,9 @@ void nvideo_single_set(
 	struct nvideo_color arg_color
 ) {
 	int index = get_frame_index(*frame, x, y);
-	unsigned char color[NVIDEO_COLOR_AMOUNT] = {
-		arg_color.r,
-		arg_color.g,
-		arg_color.b
-	};
-	
-	for(int i = 0; i < NVIDEO_COLOR_AMOUNT; i++) {
-		frame->back[index + i] = color[i];
-	}
+	frame->back[index] = arg_color.r;
+	frame->back[index + 1] = arg_color.g;
+	frame->back[index + 2] = arg_color.b;
 }
 
 static struct nvideo_color nvideo_single_get_either(
@@ -82,21 +76,19 @@ static struct nvideo_color nvideo_single_get_either(
 	int y,
 	int is_back
 ) {
-	unsigned char color[NVIDEO_COLOR_AMOUNT] = { 0 };
-	int index = get_frame_index(*frame, x, y);
-	for(int i = 0; i < NVIDEO_COLOR_AMOUNT; i++) {
-		unsigned char *data = is_back
-			? frame->back
-			: frame->front;
-		
-		color[i] = data[index + i];
-	}
 
-	struct nvideo_color result;
-	result.r = color[0];
-	result.g = color[1];
-	result.b = color[2];
-	return result;
+	// Can't use NVIDEO_COLOR_DECL or else GCC gets mad for some
+	// reason.
+	struct nvideo_color color = nvideo_color_make(0, 0, 0);
+	int index = get_frame_index(*frame, x, y);
+	unsigned char *data = is_back
+		? frame->back
+		: frame->front;
+		
+	color.r = data[index];
+	color.g = data[index + 1];
+	color.b = data[index + 2];
+	return color;
 }
 
 struct nvideo_color nvideo_single_get(
@@ -176,6 +168,8 @@ static void write_to_frame(
 			int dest_index = get_frame_index(*dest, src_x, src_y);
 			int src_index = get_frame_index(*src, x, y);
 			dest->back[dest_index] = src->back[src_index];
+			dest->back[dest_index + 1] = src->back[src_index + 1];
+			dest->back[dest_index + 2] = src->back[src_index + 2];
 		}
 	}
 }
@@ -242,8 +236,8 @@ struct nvideo_queue nvideo_queue_make(
 	int y,
 	struct nvideo_color color
 ) {
-	struct nvideo_queue queue = NVIDEO_QUEUE_DECL(x, y, color);
-	return queue;
+	struct nvideo_queue result = NVIDEO_QUEUE_DECL(x, y, color);
+	return result;
 }
 
 void nvideo_process(

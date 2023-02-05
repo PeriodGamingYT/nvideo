@@ -8,9 +8,12 @@ static void terminal_set(
 	struct nvideo_color color
 ) {
 	printf(
-		"\x1b[%d;%df\x1b[38;2;%d;%d;%dm#\x1b[0m", 
+		"\x1b[%d;%df\x1b[38;2;%d;%d;%dm\x1b[48;2;%d;%d;%dm#\x1b[0m", 
 		y + 1,
-		x,
+		x + 1,
+		color.r,
+		color.g,
+		color.b,
 		color.r,
 		color.g,
 		color.b
