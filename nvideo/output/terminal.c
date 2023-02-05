@@ -1,6 +1,6 @@
-#include "terminal.h"
+#include <nvideo/output/terminal.h>
 #include <stdio.h>
-#include "../nvideo.h"
+#include <nvideo/nvideo.h>
 
 static void terminal_set(
 	int x,
@@ -20,9 +20,9 @@ static void terminal_set(
 	);
 }
 
-struct nvideo_output *nvideo_terminal_make() {
-	struct nvideo_output *result = nvideo_output_make();
-	result->set = terminal_set;
-	result->get = NULL;
-	result->color_length = 3;
+struct nvideo_output nvideo_terminal_make() {
+	struct nvideo_output result;
+	result.set = terminal_set;
+	result.get = NULL;
+	return result;
 }

@@ -214,73 +214,22 @@ void nvideo_add_child(
 	frame->children[frame->children_length - 1] = child;
 }
 
-void nvideo_output_free(
-	struct nvideo_output *output
-) {
-	free(output->queue);
-	free(output);
-}
-
-struct nvideo_output *nvideo_output_make() {
-	struct nvideo_output *result = (struct nvideo_output *)
-		malloc(sizeof(struct nvideo_output));
-
-	result->queue = (struct nvideo_queue *)
-		malloc(sizeof(struct nvideo_queue));
-
-	return result;
-}
-
-struct nvideo_queue nvideo_queue_make(
-	int x,
-	int y,
-	struct nvideo_color color
-) {
-	struct nvideo_queue result = NVIDEO_QUEUE_DECL(x, y, color);
-	return result;
-}
-
-void nvideo_process(
-	struct nvideo_output *output
-) {
-	for(int i = 0; i < output->queue_length; i++) {
-		output->set(
-			output->queue[i].x,
-			output->queue[i].y,
-			output->queue[i].color
-		);
-	}
-}
-
-void nvideo_add_pixel(
-	struct nvideo_output *output, 
+void nvideo_output_pixel(
+	struct nvideo_output output, 
 	int x, 
 	int y, 
 	struct nvideo_color color
 ) {
-	output->queue_length++;
-	output->queue = (struct nvideo_queue *) realloc(
-		output->queue,
-		sizeof(struct nvideo_queue) *
-		output->queue_length
-	);
-
-	struct nvideo_queue queue = nvideo_queue_make(
-		x,
-		y,
-		color
-	);
-
-	output->queue[output->queue_length - 1] = queue;
+	output.set(x, y, color);
 }
 
-void nvideo_add_single_frame(
-	struct nvideo_output *output, 
+void nvideo_output_single_frame(
+	struct nvideo_output output, 
 	struct nvideo_single_frame *frame
 ) {
 	for(int y = 0; y < frame->height; y++) {
 		for(int x = 0; x < frame->width; x++) {
-			nvideo_add_pixel(
+			nvideo_output_pixel(
 				output,
 				x,
 				y,
@@ -290,15 +239,15 @@ void nvideo_add_single_frame(
 	}
 }
 
-void nvideo_add_frame(
-	struct nvideo_output *output, 
+void nvideo_output_frame(
+	struct nvideo_output output, 
 	struct nvideo_frame *frame
 ) {
 	if(frame->merged_result == NULL) {
 		nvideo_merge(frame);
 	}
 
-	nvideo_add_single_frame(
+	nvideo_output_single_frame(
 		output, 
 		frame->merged_result
 	);

@@ -76,55 +76,25 @@ void nvideo_add_child(
 	struct nvideo_frame *
 );
 
-struct nvideo_queue {
-	int x;
-	int y;
-	struct nvideo_color color;	
-};
-
-#define NVIDEO_QUEUE_DECL(x, y, color) \
-	{ \
-		.x = x, \
-		.y = y, \
-		.color = color \
-	}
-
-struct nvideo_queue nvideo_queue_make(
-	int, 
-	int, 
-	struct nvideo_color
-);
-
 struct nvideo_output {
 	void (*set)(int, int, struct nvideo_color);
 	struct nvideo_color *(*get)(int, int);
-
-	// X, Y (32-Bit), color * color_length (8-Bit).
-	struct nvideo_queue *queue;
-	int queue_length;
-	int color_length;
 };
 
-void nvideo_output_free(struct nvideo_output *);
-struct nvideo_output *nvideo_output_make();
-void nvideo_process(
-	struct nvideo_output *
-);
-
-void nvideo_add_pixel(
-	struct nvideo_output *, 
+void nvideo_output_pixel(
+	struct nvideo_output, 
 	int, 
 	int, 
 	struct nvideo_color
 );
 
-void nvideo_add_single_frame(
-	struct nvideo_output *, 
+void nvideo_output_single_frame(
+	struct nvideo_output, 
 	struct nvideo_single_frame *
 );
 
-void nvideo_add_frame(
-	struct nvideo_output *, 
+void nvideo_output_frame(
+	struct nvideo_output, 
 	struct nvideo_frame *
 );
 

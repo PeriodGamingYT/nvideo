@@ -1,6 +1,6 @@
-#include "dump.h"
+#include <nvideo/output/dump.h>
 #include <stdio.h>
-#include "../nvideo.h"
+#include <nvideo/nvideo.h>
 
 static void dump_set(
 	int x,
@@ -17,9 +17,9 @@ static void dump_set(
 	);
 }
 
-struct nvideo_output *nvideo_dump_make() {
-	struct nvideo_output *result = nvideo_output_make();
-	result->set = dump_set;
-	result->get = NULL;
-	result->color_length = 3;
+struct nvideo_output nvideo_dump_make() {
+	struct nvideo_output result;
+	result.set = dump_set;
+	result.get = NULL;
+	return result;
 }
