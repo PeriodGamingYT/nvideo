@@ -15,23 +15,34 @@ struct nvideo_single_frame {
 
 struct nvideo_single_frame *nvideo_single_frame_make(int, int);
 void nvideo_single_frame_free(struct nvideo_single_frame *);
+void nvideo_swap(struct nvideo_single_frame *);
+struct nvideo_color {
+	unsigned char r;
+	unsigned char g;
+	unsigned char b;
+};
 
-// WARNING: nvideo_set and nvideo_get don't check if
-// unsigned char * length is equal to NVIDEO_COLOR_AMOUNT!
-void nvideo_set(
+#define NVIDEO_COLOR_DECL(r, g, b) \
+	{ \
+		.r = r, \
+		.g = g, \
+		.b = b \
+	}
+
+struct nvideo_color nvideo_color_make(
+	unsigned char,
+	unsigned char,
+	unsigned char
+);
+
+void nvideo_single_set(
 	struct nvideo_single_frame *, 
 	int, 
 	int, 
-	unsigned char *
+	struct nvideo_color
 );
 
-struct nvideo_color {
-	unsigned char r : 8;
-	unsigned char g : 8;
-	unsigned char b : 8;
-}
-
-struct nvideo_color nvideo_get(
+struct nvideo_color nvideo_single_get(
 	struct nvideo_single_frame *, 
 	int, 
 	int
@@ -44,6 +55,19 @@ struct nvideo_frame {
 	struct nvideo_single_frame *merged_result;
 };
 
+void nvideo_set(
+	struct nvideo_frame *, 
+	int, 
+	int, 
+	struct nvideo_color
+);
+
+struct nvideo_color nvideo_get(
+	struct nvideo_frame *, 
+	int, 
+	int
+);
+
 void nvideo_frame_free(struct nvideo_frame *);
 struct nvideo_frame *nvideo_frame_make();
 void nvideo_merge(struct nvideo_frame *);
@@ -52,31 +76,54 @@ void nvideo_add_child(
 	struct nvideo_frame *
 );
 
+struct nvideo_queue {
+	int x;
+	int y;
+	struct nvideo_color color;	
+};
+
+#define NVIDEO_QUEUE_DECL(x, y, color) \
+	{ \
+		.x = x, \
+		.y = y, \
+		.color = color \
+	}
+
+struct nvideo_queue nvideo_queue_make(
+	int, 
+	int, 
+	struct nvideo_color
+);
+
 struct nvideo_output {
-	void (set*)(int, int, unsigned char*);
-	unsigned char *(get*)(int, int);
+	void (*set)(int, int, struct nvideo_color);
+	struct nvideo_color *(*get)(int, int);
 
 	// X, Y (32-Bit), color * color_length (8-Bit).
-	unsigned char *queue;
+	struct nvideo_queue *queue;
 	int queue_length;
 	int color_length;
 };
 
 void nvideo_output_free(struct nvideo_output *);
 struct nvideo_output *nvideo_output_make();
-void nvideo_output_pixel(
+void nvideo_process(
+	struct nvideo_output *
+);
+
+void nvideo_add_pixel(
 	struct nvideo_output *, 
 	int, 
 	int, 
-	unsigned char *
+	struct nvideo_color
 );
 
-void nvideo_output_single_frame(
+void nvideo_add_single_frame(
 	struct nvideo_output *, 
 	struct nvideo_single_frame *
 );
 
-void nvideo_output_frame(
+void nvideo_add_frame(
 	struct nvideo_output *, 
 	struct nvideo_frame *
 );

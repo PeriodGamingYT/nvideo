@@ -33,6 +33,14 @@ void nvideo_single_frame_free(
 	free(frame);
 }
 
+void nvideo_swap(
+	struct nvideo_single_frame *frame
+) {
+	unsigned char *temp = frame->back;
+	frame->back = frame->front;
+	frame->front = temp;
+}
+
 static int get_frame_index(
 	struct nvideo_single_frame frame,
 	int x,
@@ -41,27 +49,47 @@ static int get_frame_index(
 	return ((y * frame.width) + x) * NVIDEO_COLOR_AMOUNT;
 }
 
-void nvideo_set(
+struct nvideo_color nvideo_color_make(
+	unsigned char r,
+	unsigned char g,
+	unsigned char b
+) {
+	struct nvideo_color result = NVIDEO_COLOR_DECL(r, g, b);
+	return result;
+}
+
+void nvideo_single_set(
 	struct nvideo_single_frame *frame,
 	int x,
 	int y,
-	unsigned char *color
+	struct nvideo_color arg_color
 ) {
 	int index = get_frame_index(*frame, x, y);
+	unsigned char color[NVIDEO_COLOR_AMOUNT] = {
+		arg_color.r,
+		arg_color.g,
+		arg_color.b
+	};
+	
 	for(int i = 0; i < NVIDEO_COLOR_AMOUNT; i++) {
 		frame->back[index + i] = color[i];
 	}
 }
 
-struct nvideo_color nvideo_get(
+static struct nvideo_color nvideo_single_get_either(
 	struct nvideo_single_frame *frame,
 	int x,
-	int y
+	int y,
+	int is_back
 ) {
 	unsigned char color[NVIDEO_COLOR_AMOUNT] = { 0 };
 	int index = get_frame_index(*frame, x, y);
 	for(int i = 0; i < NVIDEO_COLOR_AMOUNT; i++) {
-		color[i] = frame->back[index + i];
+		unsigned char *data = is_back
+			? frame->back
+			: frame->front;
+		
+		color[i] = data[index + i];
 	}
 
 	struct nvideo_color result;
@@ -69,6 +97,31 @@ struct nvideo_color nvideo_get(
 	result.g = color[1];
 	result.b = color[2];
 	return result;
+}
+
+struct nvideo_color nvideo_single_get(
+	struct nvideo_single_frame *frame,
+	int x,
+	int y
+) {
+	return nvideo_single_get_either(frame, x, y, 1);
+}
+
+void nvideo_set(
+	struct nvideo_frame *frame,
+	int x,
+	int y,
+	struct nvideo_color arg_color
+) {
+	nvideo_single_set(frame->self, x, y, arg_color);
+}
+
+struct nvideo_color nvideo_get(
+	struct nvideo_frame *frame,
+	int x,
+	int y
+) {
+	return nvideo_single_get(frame->self, x, y);
 }
 
 void nvideo_frame_free(
@@ -105,7 +158,7 @@ struct nvideo_frame *nvideo_frame_make(
 
 static void write_to_frame(
 	struct nvideo_single_frame *dest,
-	struct nvideo_single_frase *src
+	struct nvideo_single_frame *src
 ) {
 	for(int y = 0; y < src->height; y++) {
 		for(int x = 0; x < src->width; x++) {
@@ -120,9 +173,9 @@ static void write_to_frame(
 				continue;
 			}
 
-			int dest_index = get_frame_index(dest, src_x, src_y);
-			int src_index = get_frame_index(src, x, y);
-			dest->back[dest_index] = src->back[dest_index];
+			int dest_index = get_frame_index(*dest, src_x, src_y);
+			int src_index = get_frame_index(*src, x, y);
+			dest->back[dest_index] = src->back[src_index];
 		}
 	}
 }
@@ -134,9 +187,22 @@ void nvideo_merge(
 		free(frame->merged_result);
 		frame->merged_result = NULL;
 	}
+
+	frame->merged_result = nvideo_single_frame_make(
+		frame->self->width,
+		frame->self->height	
+	);
 	
 	write_to_frame(frame->merged_result, frame->self);
-	
+	for(int i = 0; i < frame->children_length; i++) {
+		nvideo_merge(frame->children[i]);
+		write_to_frame(
+			frame->merged_result, 
+			frame->children[i]->self
+		);
+	}
+
+	nvideo_swap(frame->merged_result);
 }
 
 void nvideo_add_child(
@@ -162,34 +228,84 @@ void nvideo_output_free(
 }
 
 struct nvideo_output *nvideo_output_make() {
-	struct nvideo_output *result =(struct nvideo_output *)
+	struct nvideo_output *result = (struct nvideo_output *)
 		malloc(sizeof(struct nvideo_output));
 
-	result->queue = (unsigned char*)
-		malloc(sizeof(unsigned char));
+	result->queue = (struct nvideo_queue *)
+		malloc(sizeof(struct nvideo_queue));
 
 	return result;
 }
 
-void nvideo_output_pixel(
-	struct nvideo_output *output, 
-	int y, 
-	int x, 
-	unsigned char *color
+struct nvideo_queue nvideo_queue_make(
+	int x,
+	int y,
+	struct nvideo_color color
 ) {
-	// TODO
+	struct nvideo_queue queue = NVIDEO_QUEUE_DECL(x, y, color);
+	return queue;
 }
 
-void nvideo_output_single_frame(
+void nvideo_process(
+	struct nvideo_output *output
+) {
+	for(int i = 0; i < output->queue_length; i++) {
+		output->set(
+			output->queue[i].x,
+			output->queue[i].y,
+			output->queue[i].color
+		);
+	}
+}
+
+void nvideo_add_pixel(
+	struct nvideo_output *output, 
+	int x, 
+	int y, 
+	struct nvideo_color color
+) {
+	output->queue_length++;
+	output->queue = (struct nvideo_queue *) realloc(
+		output->queue,
+		sizeof(struct nvideo_queue) *
+		output->queue_length
+	);
+
+	struct nvideo_queue queue = nvideo_queue_make(
+		x,
+		y,
+		color
+	);
+
+	output->queue[output->queue_length - 1] = queue;
+}
+
+void nvideo_add_single_frame(
 	struct nvideo_output *output, 
 	struct nvideo_single_frame *frame
 ) {
-	// TODO
+	for(int y = 0; y < frame->height; y++) {
+		for(int x = 0; x < frame->width; x++) {
+			nvideo_add_pixel(
+				output,
+				x,
+				y,
+				nvideo_single_get_either(frame, x, y, 0)
+			);
+		}
+	}
 }
 
-void nvideo_output_frame(
+void nvideo_add_frame(
 	struct nvideo_output *output, 
 	struct nvideo_frame *frame
 ) {
-	// TODO
+	if(frame->merged_result == NULL) {
+		nvideo_merge(frame);
+	}
+
+	nvideo_add_single_frame(
+		output, 
+		frame->merged_result
+	);
 }
