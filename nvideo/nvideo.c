@@ -28,14 +28,23 @@ struct nvideo_single_frame *nvideo_single_frame_make(
 void nvideo_single_frame_free(
 	struct nvideo_single_frame *frame
 ) {
+	if(frame == NULL) {
+		return;
+	}
+	
 	free(frame->front);
 	free(frame->back);
 	free(frame);
+	frame = NULL;
 }
 
 void nvideo_swap(
 	struct nvideo_single_frame *frame
 ) {
+	if(frame == NULL) {
+		return;
+	}
+	
 	unsigned char *temp = frame->back;
 	frame->back = frame->front;
 	frame->front = temp;
@@ -64,6 +73,10 @@ void nvideo_single_set(
 	int y,
 	struct nvideo_color arg_color
 ) {
+	if(frame == NULL) {
+		return;
+	}
+	
 	int index = get_frame_index(*frame, x, y);
 	frame->back[index] = arg_color.r;
 	frame->back[index + 1] = arg_color.g;
@@ -76,7 +89,11 @@ static struct nvideo_color nvideo_single_get_either(
 	int y,
 	int is_back
 ) {
-
+	if(frame == NULL) {
+		struct nvideo_color error = nvideo_color_make(-1, -1, -1);
+		return error;
+	}
+	
 	// Can't use NVIDEO_COLOR_DECL or else GCC gets mad for some
 	// reason.
 	struct nvideo_color color = nvideo_color_make(0, 0, 0);
@@ -96,6 +113,11 @@ struct nvideo_color nvideo_single_get(
 	int x,
 	int y
 ) {
+	if(frame == NULL) {
+		struct nvideo_color error = nvideo_color_make(-1, -1, -1);
+		return error;
+	}
+	
 	return nvideo_single_get_either(frame, x, y, 1);
 }
 
@@ -105,6 +127,10 @@ void nvideo_set(
 	int y,
 	struct nvideo_color arg_color
 ) {
+	if(frame == NULL) {
+		return;
+	}
+	
 	nvideo_single_set(frame->self, x, y, arg_color);
 }
 
@@ -113,12 +139,21 @@ struct nvideo_color nvideo_get(
 	int x,
 	int y
 ) {
+	if(frame == NULL) {
+		struct nvideo_color error = nvideo_color_make(-1, -1, -1);
+		return error;
+	}
+	
 	return nvideo_single_get(frame->self, x, y);
 }
 
 void nvideo_frame_free(
 	struct nvideo_frame *frame
 ) {
+	if(frame == NULL) {
+		return;
+	}
+	
 	nvideo_single_frame_free(frame->self);
 	for(int i = 0; i < frame->children_length; i++) {
 		nvideo_frame_free(frame->children[i]);
@@ -129,6 +164,7 @@ void nvideo_frame_free(
 	}
 
 	free(frame);
+	frame = NULL;
 }
 
 
@@ -152,6 +188,10 @@ static void write_to_frame(
 	struct nvideo_single_frame *dest,
 	struct nvideo_single_frame *src
 ) {
+	if(dest == NULL || src == NULL) {
+		return;
+	}
+	
 	for(int y = 0; y < src->height; y++) {
 		for(int x = 0; x < src->width; x++) {
 			int src_x = x + src->x;
@@ -177,6 +217,10 @@ static void write_to_frame(
 void nvideo_merge(
 	struct nvideo_frame *frame
 ) {
+	if(frame == NULL) {
+		return;
+	}
+	
 	if(frame->merged_result != NULL) {
 		free(frame->merged_result);
 		frame->merged_result = NULL;
@@ -203,6 +247,10 @@ void nvideo_add_child(
 	struct nvideo_frame *frame,
 	struct nvideo_frame *child
 ) {
+	if(frame == NULL || child == NULL) {
+		return;
+	}
+	
 	frame->children_length++;
 	frame->children = (struct nvideo_frame **) realloc(
 		frame->children,
@@ -227,6 +275,10 @@ void nvideo_output_single_frame(
 	struct nvideo_output output, 
 	struct nvideo_single_frame *frame
 ) {
+	if(frame == NULL) {
+		return;
+	}
+	
 	for(int y = 0; y < frame->height; y++) {
 		for(int x = 0; x < frame->width; x++) {
 			nvideo_output_pixel(
@@ -243,6 +295,10 @@ void nvideo_output_frame(
 	struct nvideo_output output, 
 	struct nvideo_frame *frame
 ) {
+	if(frame == NULL) {
+		return;
+	}
+	
 	if(frame->merged_result == NULL) {
 		nvideo_merge(frame);
 	}
