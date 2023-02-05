@@ -233,6 +233,10 @@ void nvideo_merge(
 	
 	write_to_frame(frame->merged_result, frame->self);
 	for(int i = 0; i < frame->children_length; i++) {
+		if(frame->children[i] == NULL) {
+			continue;
+		}
+		
 		nvideo_merge(frame->children[i]);
 		write_to_frame(
 			frame->merged_result, 
