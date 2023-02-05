@@ -94,8 +94,7 @@ static struct nvideo_color nvideo_single_get_either(
 		return error;
 	}
 	
-	// Can't use NVIDEO_COLOR_DECL or else GCC gets mad for some
-	// reason.
+	// Can't use NVIDEO_COLOR_DECL or else GCC gets mad for some reason.
 	struct nvideo_color color = nvideo_color_make(0, 0, 0);
 	int index = get_frame_index(*frame, x, y);
 	unsigned char *data = is_back
