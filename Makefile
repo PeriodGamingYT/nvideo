@@ -1,4 +1,5 @@
 make:
+	clear
 	gcc \
 		-I. \
 		nvideo/nvideo.c \
@@ -26,9 +27,4 @@ test: main.c nvideo.o
 clean:
 	rm -f main
 	rm -f *.o
-
-run:
-	make clean
-	make
 	clear
-	./main
