@@ -206,9 +206,10 @@ static void write_to_frame(
 
 			int dest_index = get_frame_index(*dest, src_x, src_y);
 			int src_index = get_frame_index(*src, x, y);
-			dest->back[dest_index] = src->back[src_index];
-			dest->back[dest_index + 1] = src->back[src_index + 1];
-			dest->back[dest_index + 2] = src->back[src_index + 2];
+			dest->front[dest_index] = src->front[src_index];
+			dest->front[dest_index + 1] = src->front[src_index + 1];
+			dest->front[dest_index + 2] = src->front[src_index + 2];
+			nvideo_swap(dest);
 		}
 	}
 }
@@ -242,8 +243,6 @@ void nvideo_merge(
 			frame->children[i]->self
 		);
 	}
-
-	nvideo_swap(frame->merged_result);
 }
 
 void nvideo_add_child(
