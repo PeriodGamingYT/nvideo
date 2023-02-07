@@ -256,9 +256,8 @@ void nvideo_add_child(
 	frame->children_length++;
 	frame->children = (struct nvideo_frame **) realloc(
 		frame->children,
-		sizeof(struct nvideo_frame *) * (
-			frame->children_length
-		)
+		sizeof(struct nvideo_frame *) *
+		frame->children_length
 	);
 
 	frame->children[frame->children_length - 1] = child;
