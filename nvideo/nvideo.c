@@ -38,7 +38,7 @@ void nvideo_single_frame_free(
 	frame = NULL;
 }
 
-void nvideo_swap(
+void nvideo_swap_single(
 	struct nvideo_single_frame *frame
 ) {
 	if(frame == NULL) {
@@ -118,6 +118,16 @@ struct nvideo_color nvideo_single_get(
 	}
 	
 	return nvideo_single_get_either(frame, x, y, 1);
+}
+
+void nvideo_swap(
+	struct nvideo_frame *frame
+) {
+	if(frame == NULL) {
+		return;
+	}
+
+	nvideo_swap_single(frame->self);
 }
 
 void nvideo_set(
@@ -209,7 +219,7 @@ static void write_to_frame(
 			dest->front[dest_index] = src->front[src_index];
 			dest->front[dest_index + 1] = src->front[src_index + 1];
 			dest->front[dest_index + 2] = src->front[src_index + 2];
-			nvideo_swap(dest);
+			nvideo_swap_single(dest);
 		}
 	}
 }

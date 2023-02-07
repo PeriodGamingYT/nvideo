@@ -15,7 +15,7 @@ struct nvideo_single_frame {
 
 struct nvideo_single_frame *nvideo_single_frame_make(int, int);
 void nvideo_single_frame_free(struct nvideo_single_frame *);
-void nvideo_swap(struct nvideo_single_frame *);
+void nvideo_swap_single(struct nvideo_single_frame *);
 struct nvideo_color {
 	unsigned char r;
 	unsigned char g;
@@ -55,6 +55,7 @@ struct nvideo_frame {
 	struct nvideo_single_frame *merged_result;
 };
 
+void nvideo_swap(struct nvideo_frame *);
 void nvideo_set(
 	struct nvideo_frame *, 
 	int, 

@@ -8,14 +8,16 @@ make:
 		-c \
 		-g
 
-	mv nvideo.o nvideo_part.o
-	gcc \	
-		-o nvideo.o
-		nvideo_part.o \
-		terminal.o \
-		dump.o
+	ar rs nvideo.a nvideo.o terminal.o dump.o
+
+clean:
+	rm -f main
+	rm -rf *.o
+	rm -rf *.a
+	clear
 
 test: main.c
+	make clean
 	make
 	gcc \
 		-I. \
@@ -26,11 +28,6 @@ test: main.c
 	gcc \
 		-o main \
 		main.o \
-		nvideo.o
+		nvideo.a
 
 	./main
-
-clean:
-	rm -f main
-	rm -f *.o
-	clear
