@@ -1,6 +1,3 @@
-// This code uses local headers, but in practice you should use
-// brackets in nvideo include statements, if it's installed.
-// This file is meant to act as a test for the whole software suite.
 #include <nvideo/nvideo.h>
 #include <nvideo/output/terminal.h>
 

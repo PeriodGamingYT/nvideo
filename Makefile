@@ -8,7 +8,15 @@ make:
 		-c \
 		-g
 
-test: main.c nvideo.o
+	mv nvideo.o nvideo_part.o
+	gcc \	
+		-o nvideo.o
+		nvideo_part.o \
+		terminal.o \
+		dump.o
+
+test: main.c
+	make
 	gcc \
 		-I. \
 		-c \
@@ -18,9 +26,7 @@ test: main.c nvideo.o
 	gcc \
 		-o main \
 		main.o \
-		nvideo.o \
-		dump.o \
-		terminal.o
+		nvideo.o
 
 	./main
 
