@@ -1,0 +1,135 @@
+Documentation for nvideo:
+	First data structure: 'nvideo_single_frame':
+		It has a front and back, so it supports double buffering out of the
+		box. Second, it uses the colors R, G, B (from 0 - 255). Third, it
+		has a width and height (Used when allocating and finding the index
+		of a pixel). Lastly, it has an X and Y. This is used when using the
+		wrapper 'nvideo_frame' so you can have frames in frames.
+
+		Functions using this data structure are:
+			nvideo_single_frame_make(int width, int height)
+				- Makes a nvideo_single_frame with the appropiate width
+				  and height.
+
+			nvideo_single_frame_free(struct nvideo_single_frame *frame)
+				- Frees the frame when it is no longer needed.
+
+			nvideo_swap_single(struct nvideo_single_frame *frame)
+				- Swaps the front and back, again for supporting double
+				  buffering out of the box.
+
+			nvideo_single_set(
+				struct nvideo_single_frame *frame, 
+				int x, 
+				int y, 
+				struct nvideo_color color
+			)
+				- Sets a pixel to color at X, and Y in the frame.
+
+			nvideo_single_get(
+				struct nvideo_single_frame *frame, 
+				int x, 
+				int y
+			)
+				- Returns an nvideo_color containing the color for the
+				  pixel at X, and Y.
+
+	Second data structure 'nvideo_color':
+		A wrapper for a color with an R, G, and B value, which is what 
+		nvideo uses.
+
+		Functions using this data structure are:
+			nvideo_color_make(
+				unsigned char r, 
+				unsigned char g, 
+				unsigned char b
+			)
+				- Makes a wrapper struct for a color with an R, G, and B.
+			  	  Which is what nvideo uses.
+
+			
+	Third data structure 'nvideo_frame':
+		A wrapper for 'nvideo_single_frame', with the express purpose of
+		combining frames, with the result being cached in merged_result.
+		It also has a self, which is pretty self explanitory.
+
+		Functions for this data structure are:
+			nvideo_swap(struct nvideo_frame *frame)
+				- Swaps the self part in a frame.
+
+			nvideo_set(
+				struct nvideo_frame *frame,
+				int x,
+				int y,
+				struct nvideo_color *color
+			)
+				- Sets a pixel in self, see nvideo_single_set().
+
+			nvideo_get(
+				struct nvideo_frame *frame,
+				int x,
+				int y
+			)
+				- Gets and returns the pixel in self at X, and Y. 
+				  Returns a 'nvideo_color' wrapper, see 
+				  nvideo_single_get().
+
+			nvideo_frame_free(
+				struct nvideo_frame *frame
+			)
+				- Frees the given frame.
+
+			nvideo_frame_make(
+				int width,
+				int height
+			)
+				- Makes a frame with the given width and height, it then
+				  returns the frame that it made.
+
+			nvideo_merge(
+				struct nvideo_frame *frame
+			)
+				- Merges self and children into merged_result, the
+				  merged_result acts as a cache.
+
+			nvideo_add_child(
+				struct nvideo_frame *frame,
+				struct nvideo_frame *child
+			)
+				- Adds a child to a frame, to delete a child, just free
+				  the said child, nvideo has implemented proper null
+				  saftey.
+
+	Last data structure 'nvideo_output':
+		This is a wrapper for several different types of output,
+		this can include images, video, and real-time graphics.
+		It does this by giving a set and get function, please note
+		that the get function is not absolutely required and can be
+		null, so make sure to check if it's NULL or not.
+		
+		Functions for this data structure.
+			nvideo_output_pixel(
+				struct nvideo_output output,
+				int x,
+				int y,
+				struct nvideo_color color
+			)
+				- Sets the output of a pixel, note that the output
+				  can change the color to something that it's output
+				  is compatible with, like a VGA palette for example.
+				  Also, if the pixel is out of bounds for the output,
+				  whatever happens is implementation specific (When
+				  implementing a certain output, not this library).
+			
+			nvideo_output_single_frame(
+				struct nvideo_output output,
+				struct nvideo_single_frame *frame
+			)
+				- Sets an output to a frame.
+
+			nvideo_output_frame(
+				struct nvideo_output_frame output,
+				struct nvideo_frame *frame
+			)
+				- Sets an output to a frame, please note that it will
+				  output merged_result.
