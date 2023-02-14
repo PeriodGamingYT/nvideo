@@ -76,6 +76,15 @@ void nvideo_single_set(
 	if(frame == NULL) {
 		return;
 	}
+
+	if(
+		x < 0 ||
+		y < 0 ||
+		x > frame->width ||
+		y > frame->height
+	) {
+		return;
+	}
 	
 	int index = get_frame_index(*frame, x, y);
 	frame->back[index] = arg_color.r;
@@ -89,13 +98,27 @@ static struct nvideo_color nvideo_single_get_either(
 	int y,
 	int is_back
 ) {
+	struct nvideo_color error = nvideo_color_make(-1, -1, -1);
 	if(frame == NULL) {
-		struct nvideo_color error = nvideo_color_make(-1, -1, -1);
 		return error;
 	}
+
+	if(
+		x < 0 ||
+		y < 0 ||
+		x > frame->width ||
+		y > frame->height
+	) {
+		return error;
+	}
+
+	// GCC gets mad if I use NVIDEO_COLOR_DECL.
+	struct nvideo_color color = {
+		.r = 0,
+		.g = 0,
+		.b = 0	
+	};
 	
-	// Can't use NVIDEO_COLOR_DECL or else GCC gets mad for some reason.
-	struct nvideo_color color = nvideo_color_make(0, 0, 0);
 	int index = get_frame_index(*frame, x, y);
 	unsigned char *data = is_back
 		? frame->back
@@ -167,7 +190,8 @@ void nvideo_frame_free(
 	for(int i = 0; i < frame->children_length; i++) {
 		nvideo_frame_free(frame->children[i]);
 	}
-	
+
+	free(frame->children);
 	if(frame->merged_result != NULL) {
 		nvideo_single_frame_free(frame->merged_result);
 	}
