@@ -1,6 +1,30 @@
 #include <nvideo/output/terminal.h>
 #include <stdio.h>
 #include <nvideo/nvideo.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+
+struct nvideo_size nvideo_terminal_size() {
+	struct winsize size;
+	struct nvideo_size result = {
+		.width = -1,
+		.height = -1
+	};
+	
+	if(
+		ioctl(
+			STDOUT_FILENO,
+			TIOCGWINSZ,
+			&size
+		) != -1 ||
+		size.ws_col == 0
+	) {
+		result.width = size.ws_col;
+		result.height = size.ws_row;
+	}
+
+	return result;
+}
 
 static void terminal_set(
 	int x,

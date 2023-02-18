@@ -1,5 +1,16 @@
 #include "nvideo.h"
 #include <stdlib.h>
+#include <stdio.h>
+
+static void die(char *message) {
+	fprintf(stderr, "FATAL: %s\n", message);
+	exit(-1);
+}
+
+#define NVIDEO_ASSERT_NULL(x) \
+	if( x == NULL) { \
+		die("Can't malloc()/realloc()!"); \
+	}
 
 struct nvideo_single_frame *nvideo_single_frame_make(
 	int width,
@@ -10,6 +21,7 @@ struct nvideo_single_frame *nvideo_single_frame_make(
 			sizeof(struct nvideo_single_frame)
 		);
 
+	NVIDEO_ASSERT_NULL(frame);
 	frame->width = width;
 	frame->height = height;
 	int frame_size =
@@ -20,9 +32,30 @@ struct nvideo_single_frame *nvideo_single_frame_make(
 	
 	frame->front = (unsigned char *) malloc(frame_size);
 	frame->back = (unsigned char *) malloc(frame_size);
+	NVIDEO_ASSERT_NULL(frame->front);
+	NVIDEO_ASSERT_NULL(frame->back);
 	frame->x = 0;
 	frame->y = 0;
 	return frame;
+}
+
+void nvideo_single_frame_resize(
+	struct nvideo_single_frame *frame,
+	int width,
+	int height
+) {
+	free(frame->front);
+	free(frame->back);
+	frame->width = width;
+	frame->height = height;
+	int frame_size =
+		sizeof(unsigned char) * 
+		width *
+		height *
+		NVIDEO_COLOR_AMOUNT;
+	
+	frame->front = (unsigned char *) malloc(frame_size);
+	frame->back = (unsigned char *) malloc(frame_size);
 }
 
 void nvideo_single_frame_free(
@@ -205,16 +238,18 @@ struct nvideo_frame *nvideo_frame_make(
 	int width,
 	int height
 ) {
-	struct nvideo_frame *result = 
+	struct nvideo_frame *frame = 
 		malloc(sizeof(struct nvideo_frame));
 
-	result->self = nvideo_single_frame_make(width, height);
-	result->children = (struct nvideo_frame **)
+	NVIDEO_ASSERT_NULL(frame);
+	frame->self = nvideo_single_frame_make(width, height);
+	frame->children = (struct nvideo_frame **)
 		malloc(sizeof(struct nvideo_frame *));
 
-	result->children_length = 0;
-	result->merged_result = NULL;
-	return result;
+	NVIDEO_ASSERT_NULL(frame->children);
+	frame->children_length = 0;
+	frame->merged_result = NULL;
+	return frame;
 }
 
 static void write_to_frame(
@@ -294,6 +329,7 @@ void nvideo_add_child(
 		frame->children_length
 	);
 
+	NVIDEO_ASSERT_NULL(frame->children);
 	frame->children[frame->children_length - 1] = child;
 }
 
@@ -343,3 +379,5 @@ void nvideo_output_frame(
 		frame->merged_result
 	);
 }
+
+#undef NVIDEO_ASSERT_NULL

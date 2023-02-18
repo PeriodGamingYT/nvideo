@@ -14,6 +14,7 @@ struct nvideo_single_frame {
 };
 
 struct nvideo_single_frame *nvideo_single_frame_make(int, int);
+void nvideo_single_frame_resize(struct nvideo_single_frame *, int, int);
 void nvideo_single_frame_free(struct nvideo_single_frame *);
 void nvideo_swap_single(struct nvideo_single_frame *);
 struct nvideo_color {
