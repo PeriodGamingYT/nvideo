@@ -72,6 +72,7 @@ struct nvideo_color nvideo_get(
 
 void nvideo_frame_free(struct nvideo_frame *);
 struct nvideo_frame *nvideo_frame_make(int, int);
+void nvideo_frame_resize(struct nvideo_frame *, int, int);
 void nvideo_merge(struct nvideo_frame *);
 void nvideo_add_child(
 	struct nvideo_frame *, 

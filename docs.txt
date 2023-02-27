@@ -34,6 +34,15 @@ Documentation for nvideo:
 				- Returns an nvideo_color containing the color for the
 				  pixel at X, and Y.
 
+			nvideo_single_frame_resize(
+				struct nvideo_single_frame *frame,
+				int width,
+				int height
+			)
+				- Resizes frame to be a user-specified width and height.
+				  This will erase the current contents on the frame, both
+				  front and back.
+
 	Second data structure 'nvideo_color':
 		A wrapper for a color with an R, G, and B value, which is what 
 		nvideo uses.
@@ -99,6 +108,15 @@ Documentation for nvideo:
 				- Adds a child to a frame, to delete a child, just free
 				  the said child, nvideo has implemented proper null
 				  saftey.
+
+			nvideo_frame_resize(
+				struct nvideo_frame *self,
+				int width,
+				int height
+			)
+				- Resizes a frames self to be a user-specified width
+				  and height. This operation will not affect a frames
+				  children and will free the frames merged result.
 
 	Last data structure 'nvideo_output':
 		This is a wrapper for several different types of output,

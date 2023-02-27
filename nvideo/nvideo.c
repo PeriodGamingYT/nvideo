@@ -44,8 +44,22 @@ void nvideo_single_frame_resize(
 	int width,
 	int height
 ) {
-	free(frame->front);
-	free(frame->back);
+	if(
+		frame == NULL ||
+		width < 0 ||
+		height < 0
+	) {
+		return;
+	}
+	
+	if(frame->front != NULL) {
+		free(frame->front);
+	}
+	
+	if(frame->back != NULL) {
+		free(frame->back);
+	}
+	
 	frame->width = width;
 	frame->height = height;
 	int frame_size =
@@ -250,6 +264,24 @@ struct nvideo_frame *nvideo_frame_make(
 	frame->children_length = 0;
 	frame->merged_result = NULL;
 	return frame;
+}
+
+void nvideo_frame_resize(
+	struct nvideo_frame *frame,
+	int width,
+	int height
+) {
+	if(
+		frame == NULL ||
+		frame->self == NULL
+	) {
+		return;
+	}
+	
+	nvideo_single_frame_resize(frame->self, width, height);
+	if(frame->merged_result != NULL) {
+		nvideo_single_frame_free(frame->merged_result);
+	}
 }
 
 static void write_to_frame(
